@@ -9,7 +9,6 @@ public:
 
     /// GPS status codes
     enum GPS_Status : uint8_t {
-        
         NO_GPS = 0,                     ///< No GPS connected/detected
         NO_FIX = 1,                     ///< Receiving valid GPS messages but no lock
         GPS_OK_FIX_2D = 2,              ///< Receiving valid messages and 2D lock
