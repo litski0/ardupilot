@@ -28,7 +28,19 @@
 #include <AP_MSP/msp.h>
 #include <AP_ExternalAHRS/AP_ExternalAHRS.h>
 #include <SITL/SIM_GPS.h>
-#include <GCS_MAVLink/GCS_MAVLink.h>
+
+#ifndef MAVLINK_DECOUPLED  // trying to decouple mavlink enum dependcies wherever possible
+    #include <GCS_MAVLink/GCS_MAVLink.h>
+#endif
+
+#ifdef MAVLINK_DECOUPLED  // ToBeREVIEWD : If need the structure which uses this macros when we are not importing mavlink, could remove this block with additonal changes to structure
+    #ifndef MAVLINK_MSG_GPS_RTCM_DATA_FIELD_DATA_LEN 
+        #define MAVLINK_MSG_GPS_RTCM_DATA_FIELD_DATA_LEN 180
+    #endif
+    #ifndef MAVLINK_COMM_NUM_BUFFERS
+        #define MAVLINK_COMM_NUM_BUFFERS 8
+    #endif
+#endif
 
 #define GPS_UNKNOWN_DOP UINT16_MAX // set unknown DOP's to maximum value, which is also correct for MAVLink
 
@@ -258,7 +270,9 @@ public:
     void update(void);
 
     // Pass mavlink data to message handlers (for MAV type)
+#ifndef MAVLINK_DECOUPLED
     void handle_msg(mavlink_channel_t chan, const mavlink_message_t &msg);
+#endif
 #if HAL_MSP_GPS_ENABLED
     void handle_msp(const MSP::msp_gps_data_message_t &pkt);
 #endif
@@ -496,11 +510,12 @@ public:
     void lock_port(uint8_t instance, bool locked);
 
     //MAVLink Status Sending
+#ifndef MAVLINK_DECOUPLED
     void send_mavlink_gps_raw(mavlink_channel_t chan);
     void send_mavlink_gps2_raw(mavlink_channel_t chan);
 
     void send_mavlink_gps_rtk(mavlink_channel_t chan, uint8_t inst);
-
+#endif
     // Returns true if there is an unconfigured GPS, and provides the instance number of the first non configured GPS
     bool first_unconfigured_gps(uint8_t &instance) const WARN_IF_UNUSED;
     void broadcast_first_configuration_failure_reason(void) const;
@@ -745,8 +760,10 @@ private:
     } rtcm_stats;
 
     // re-assemble GPS_RTCM_DATA message
-    void handle_gps_rtcm_data(mavlink_channel_t chan, const mavlink_message_t &msg);
-    void handle_gps_inject(const mavlink_message_t &msg);
+    #ifndef MAVLINK_DECOUPLED
+        void handle_gps_rtcm_data(mavlink_channel_t chan, const mavlink_message_t &msg);
+        void handle_gps_inject(const mavlink_message_t &msg);
+    #endif
 
     //Inject a packet of raw binary to a GPS
     void inject_data(uint8_t instance, const uint8_t *data, uint16_t len);
@@ -802,7 +819,9 @@ private:
         uint8_t sent_idx;
         uint16_t seen_mav_channels;
     } rtcm;
-    bool parse_rtcm_injection(mavlink_channel_t chan, const mavlink_gps_rtcm_data_t &pkt);
+    #ifndef MAVLINK_DECOUPLED
+        bool parse_rtcm_injection(mavlink_channel_t chan, const mavlink_gps_rtcm_data_t &pkt);
+    #endif
 #endif
 
     void convert_parameters();
