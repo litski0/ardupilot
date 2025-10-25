@@ -1,5 +1,6 @@
 #pragma once
 
+#define MAVLINK_DECOUPLED
 #include <AP_GPS/AP_GPS.h>
 
 #include <AP_Logger/LogStructure.h>
